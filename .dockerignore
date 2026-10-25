@@ -1,0 +1,28 @@
+# Dependencies (installed cleanly inside container)
+node_modules/
+npm-debug.log*
+
+# Environment secrets (NEVER copy .env into Docker image)
+.env
+.env.*
+!.env.example
+
+# Git & IDE metadata
+.git/
+.gitignore
+.vscode/
+.idea/
+.agent/
+.antigravity/
+
+# Documentation & tests not needed in runtime image
+docs/
+postman/
+tests/
+README.md
+coverage/
+dist/
+tmp/
+temp/
+*.log
+
