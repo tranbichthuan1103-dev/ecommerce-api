@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 1. Bảng Role: Vai trò người dùng (VD: normal, admin)
+model Role {
+  roleid   Int    @id @default(autoincrement())
+  rolename String @db.VarChar(50)
+
+  // Quan hệ 1 - N: Một Role có nhiều User
+  users User[]
+}
+
+// 2. Bảng MemberShip: Hạng thành viên và điểm tích lũy
+model MemberShip {
+  mid   Int    @id @default(autoincrement())
+  mname String @db.VarChar(50)
+  score Int
+
+  // Quan hệ 1 - N: Một MemberShip có nhiều User
+  users User[]
+}
+
+// 3. Bảng User: Tài khoản người dùng
+model User {
+  uid      Int    @id @default(autoincrement())
+  username String @unique @db.VarChar(50)
+  fullname String @db.VarChar(100)
+  password String @db.VarChar(255)
+  roleid   Int
+  mid      Int?
+
+  // Khóa ngoại tham chiếu Role(roleid) và MemberShip(mid)
+  role       Role        @relation(fields: [roleid], references: [roleid])
+  membership MemberShip? @relation(fields: [mid], references: [mid])
+
+  // Quan hệ 1 - N: Một User có nhiều Order
+  orders Order[]
+}
+
+// 4. Bảng Product: Danh mục sản phẩm và tồn kho
+model Product {
+  pid      Int     @id @default(autoincrement())
+  pname    String  @db.VarChar(100)
+  price    Decimal @db.Decimal(10, 2)
+  quantity Int
+
+  // Quan hệ 1 - N: Một Product xuất hiện trong nhiều OrderDetail
+  orderDetails OrderDetail[]
+}
+
+// 5. Bảng Order: Đơn đặt hàng của người dùng
+model Order {
+  oid      Int      @id @default(autoincrement())
+  uid      Int
+  createat DateTime @default(now())
+
+  // Khóa ngoại tham chiếu User(uid)
+  user User @relation(fields: [uid], references: [uid])
+
+  // Quan hệ 1 - N: Một Order có nhiều OrderDetail và nhiều Shipment
+  orderDetails OrderDetail[]
+  shipments    Shipment[]
+}
+
+// 6. Bảng OrderDetail: Chi tiết đơn hàng (Khóa chính kết hợp oid + pid)
+model OrderDetail {
+  oid        Int
+  pid        Int
+  qty        Int
+  unit_price Decimal @db.Decimal(10, 2)
+
+  // Khóa ngoại tham chiếu Order(oid) và Product(pid)
+  order   Order   @relation(fields: [oid], references: [oid])
+  product Product @relation(fields: [pid], references: [pid])
+
+  // Khóa chính kết hợp (Composite Primary Key)
+  @@id([oid, pid])
+}
+
+// 7. Bảng Shipment: Thông tin giao vận của đơn hàng
+model Shipment {
+  shipid Int    @id @default(autoincrement())
+  oid    Int
+  status String @db.VarChar(50)
+
+  // Khóa ngoại tham chiếu Order(oid)
+  order Order @relation(fields: [oid], references: [oid])
+}
+
