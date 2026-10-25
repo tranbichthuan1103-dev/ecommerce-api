@@ -10,14 +10,19 @@ node_modules/
 logs/
 *.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build, coverage & temporary data
+dist/
+build/
+coverage/
+tmp/
+temp/
+.npm/
 
 # OS & Editor files
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
-
-# Build / Coverage
-dist/
-coverage/
-
