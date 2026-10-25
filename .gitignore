@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Environment variables (Security: never commit secrets to GitHub)
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Build / Coverage
+dist/
+coverage/
+
