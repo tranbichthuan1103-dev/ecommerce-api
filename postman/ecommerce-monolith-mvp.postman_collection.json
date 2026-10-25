@@ -14,11 +14,16 @@
       "key": "accessToken",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "lastOrderId",
+      "value": "1",
+      "type": "string"
     }
   ],
   "item": [
     {
-      "name": "1. Health Check",
+      "name": "1. Health Check (Tiêu chí 4)",
       "item": [
         {
           "name": "GET /api/health - System Health Check",
@@ -59,7 +64,7 @@
       ]
     },
     {
-      "name": "2. Auth & Users",
+      "name": "2. Auth & Users (Tiêu chí 6)",
       "item": [
         {
           "name": "1. POST /api/auth/register - Đăng ký tài khoản mới (Role normal, score=10)",
@@ -220,7 +225,242 @@
           }
         }
       ]
+    },
+    {
+      "name": "3. Products, Orders & Shipments (Tiêu chí 7)",
+      "item": [
+        {
+          "name": "A. GET /api/products - Lấy danh sách sản phẩm và tồn kho",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products"]
+            }
+          }
+        },
+        {
+          "name": "A2. GET /api/products/1 - Xem chi tiết sản phẩm theo pid",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products", "1"]
+            }
+          }
+        },
+        {
+          "name": "E. POST /api/orders - Đặt hàng KHÔNG dùng Token (401 Unauthorized)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    { \"pid\": 1, \"qty\": 2 },\n    { \"pid\": 2, \"qty\": 5 }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orders"]
+            }
+          }
+        },
+        {
+          "name": "B. POST /api/orders - Đặt hàng THÀNH CÔNG (Sản phẩm X mua 2, Sản phẩm Y mua 5)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (pm.response.code === 201 && res.data && res.data.oid) {",
+                  "    pm.collectionVariables.set('lastOrderId', String(res.data.oid));",
+                  "    console.log('Đã lưu mã đơn hàng {{lastOrderId}}:', res.data.oid);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    { \"pid\": 1, \"qty\": 2 },\n    { \"pid\": 2, \"qty\": 5 }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orders"]
+            }
+          }
+        },
+        {
+          "name": "C. POST /api/orders - Đặt hàng vượt tồn kho (400 Bad Request - Rollback)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    { \"pid\": 1, \"qty\": 999999 }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orders"]
+            }
+          }
+        },
+        {
+          "name": "D. POST /api/orders - Đặt hàng với pid không tồn tại (404 Not Found - Rollback)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    { \"pid\": 9999, \"qty\": 1 }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orders"]
+            }
+          }
+        },
+        {
+          "name": "F. POST /api/orders - Đặt hàng với qty <= 0 (400 Bad Request)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    { \"pid\": 1, \"qty\": 0 }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orders"]
+            }
+          }
+        },
+        {
+          "name": "G. GET /api/orders/{{lastOrderId}} - Xem thông tin đơn hàng và OrderDetail",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/{{lastOrderId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orders", "{{lastOrderId}}"]
+            }
+          }
+        },
+        {
+          "name": "H. GET /api/shipments/order/{{lastOrderId}} - Hiển thị thông tin Shipment của đơn hàng",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/order/{{lastOrderId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "shipments", "order", "{{lastOrderId}}"]
+            }
+          }
+        }
+      ]
     }
   ]
 }
-
